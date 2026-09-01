@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "venture-lab-delivery",
+  "displayName": "Venture Lab — Delivery",
+  "version": "0.1.0",
+  "description": "The engineering partner's playbook for executing an Approved Venture Lab Plan: scaffold a Notion Plan into GitHub, the self-contained issue contract, the Definition of Done, the governed-repo engineering flow, and the pre-PR self-review gate. The companion to the Product-side venture-lab plugin.",
+  "author": {
+    "name": "Filipe Estácio",
+    "url": "https://github.com/filipeestacio"
+  },
+  "homepage": "https://github.com/filipeestacio/venture-lab",
+  "repository": "https://github.com/filipeestacio/venture-lab",
+  "license": "MIT",
+  "keywords": ["venture-lab", "engineering", "github", "planning", "workflow", "sop", "definition-of-done"]
+}
