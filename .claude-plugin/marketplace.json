@@ -1,0 +1,18 @@
+{
+  "name": "venture-lab",
+  "owner": {
+    "name": "Filipe Estácio",
+    "url": "https://github.com/filipeestacio"
+  },
+  "description": "Filipe's shareable Claude Code skills, starting with Venture Lab.",
+  "version": "0.1.0",
+  "plugins": [
+    {
+      "name": "venture-lab",
+      "displayName": "Venture Lab",
+      "source": "./plugins/venture-lab",
+      "description": "Scaffold and run a Venture Lab Product workspace in Notion (research → PRD → phased plan). Contains the venture-lab-setup skill.",
+      "category": "product"
+    }
+  ]
+}
