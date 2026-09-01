@@ -13,6 +13,13 @@
       "source": "./plugins/venture-lab",
       "description": "Scaffold and run a Venture Lab Product workspace in Notion (research → PRD → phased plan). Contains the venture-lab-setup skill.",
       "category": "product"
+    },
+    {
+      "name": "venture-lab-delivery",
+      "displayName": "Venture Lab — Delivery",
+      "source": "./plugins/venture-lab-delivery",
+      "description": "The engineering partner's playbook for executing an Approved Plan: scaffold Notion Plan → GitHub, the issue contract, Definition of Done, the governed-repo engineering flow, the pre-PR review gate, and Notion MCP editing hygiene.",
+      "category": "workflow"
     }
   ]
 }
