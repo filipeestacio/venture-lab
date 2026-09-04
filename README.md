@@ -31,8 +31,9 @@ To get later updates:
 | Skill | What it does |
 |---|---|
 | `venture-lab-setup` | Scaffolds a Venture Lab Product workspace in the Notion account the session is connected to — a 🧪 home page, a portable (Notion-only) Operating Model SOP, and the 🤔 Plans + 💭 Research databases (with the Research↔Plans relation and a ⭐ TEMPLATE row in each). |
+| `configure-venture-lab` | Points the plugin at *your own* Notion: confirms the connected account, creates (or records) your 🎧 Sources inbox database, and writes a per-user config file the podcast-capture skill reads. Run once per machine/workspace; no workspace/DB id ever lives in the repo. |
 
-Once installed and reloaded, the skill is model-invoked — ask Claude to "set up a Venture Lab in my Notion" (or invoke `/venture-lab:venture-lab-setup`) in a session where the **Notion connector is connected to your own account**.
+Once installed and reloaded, the skills are model-invoked — ask Claude to "set up a Venture Lab in my Notion" or "configure venture lab for my Notion" (or invoke `/venture-lab:venture-lab-setup` / `/venture-lab:configure-venture-lab`) in a session where the **Notion connector is connected to your own account**.
 
 **What it builds:**
 
@@ -61,11 +62,15 @@ venture-lab/
 │       ├── .claude-plugin/
 │       │   └── plugin.json        # plugin manifest
 │       └── skills/
-│           └── venture-lab-setup/
+│           ├── venture-lab-setup/
+│           │   ├── SKILL.md
+│           │   └── references/
+│           │       ├── databases.md
+│           │       └── operating-model.md
+│           └── configure-venture-lab/
 │               ├── SKILL.md
 │               └── references/
-│                   ├── databases.md
-│                   └── operating-model.md
+│                   └── sources-inbox.md
 ├── README.md
 └── LICENSE
 ```
