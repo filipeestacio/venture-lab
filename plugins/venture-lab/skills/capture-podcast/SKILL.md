@@ -5,8 +5,10 @@ description: Capture a podcast/YouTube episode into the Venture Lab Sources inbo
 
 Turn one podcast/YouTube episode URL into a durable **Source** capture in the
 runner's own Notion: a pointer row (URL + timestamp + hook) with the full
-timestamped transcript attached as an archival `.md`. **Idempotent** — re-running
-on the same episode refreshes its one row, never duplicates.
+timestamped transcript attached as an archival `.md`, plus a short **descriptive
+summary** in the row body so the inbox is scannable without opening the
+transcript. **Idempotent** — re-running on the same episode refreshes its one row
+(fields, attachment, and summary), never duplicates.
 
 This skill only ever writes a Source at **`Captured`** status. It never writes
 Research, never sets `Related Research`, and never sets a human-gated status
@@ -55,7 +57,12 @@ follow it; this page is the shape of the task.
 6. **Attach the transcript** to the `Transcript` files property via
    `create-file-upload` → POST → reference the upload id (pointers only — no
    transcript text in the page body). (§4–5.)
-7. **Report** created-vs-updated, the `Name`, and the Notion row URL. (§6.)
+7. **Write the descriptive summary** into the page body — a 3–4 sentence abstract
+   + ~6–8 key-point bullets, from the transcript. Descriptive only (what it is /
+   its substance), **not** idea-extraction. On a re-run, replace the existing
+   summary; never append a second. (§6.)
+8. **Report** created-vs-updated, the `Name`, that the summary was written, and
+   the Notion row URL. (§7.)
 
 ## Guardrails
 
@@ -63,7 +70,11 @@ follow it; this page is the shape of the task.
   `Promoted`/`Discarded`, never write `Related Research`, never create a Research
   entry — that judgement is a separate, human/downstream act.
 - **Idempotent.** The Video ID is the key; one row per episode. A second run is an
-  update, never a duplicate.
+  update, never a duplicate — including the body summary (replace, don't append).
+- **Summary is descriptive, not extraction.** The body summary says what the
+  episode is and its substance, to aid scanning. It does **not** decide whether
+  there's a claim worth testing or write anything toward a 💭 Research entry —
+  that idea-extraction is the separate, deferred downstream skill.
 - **Fail loudly on the coverage gap.** A show with no YouTube captions must produce
   a clear message and **no** row — never an empty or half-filled capture.
 - **Per-user, no leaked ids.** The Sources DB comes from the runner's own config;
