@@ -26,7 +26,10 @@ follow it; this page is the shape of the task.
 - **Timestamp** (optional) — the moment that caught the user (e.g. `12:34`). Goes
   on the row and as `&t=` on the Source URL.
 - **Hook** (optional) — one line on *why* it's worth keeping. Not a summary. If
-  the user didn't give one, leave it empty — don't invent it.
+  the user gives one, use it. **If they don't, generate a concise one-line
+  descriptive hook** — what makes the episode worth keeping (the concrete
+  substance / offer / idea) — so the inbox stays scannable. Keep it descriptive,
+  not a fabricated personal reason.
 
 ## Preconditions
 

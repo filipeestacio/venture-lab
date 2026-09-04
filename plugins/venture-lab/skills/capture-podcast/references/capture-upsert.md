@@ -51,7 +51,10 @@ The executable takes **no** timestamp flag — `--at` and the hook are handled h
   line is `# <title>`; the `- Show: <show>` line gives the show. If either is
   `unknown`, fall back to the other alone; never leave `Name` blank.
 - **Timestamp** — the raw value the user gave (`12:34`), or empty.
-- **Hook** — the one line the user gave, or empty. Do not invent one.
+- **Hook** — the one line the user gave. **If none given, generate a concise
+  one-line descriptive hook** (what makes the episode worth keeping — the concrete
+  substance / offer / idea), so the row is scannable. Descriptive, not a
+  fabricated personal reason.
 - **Status** — always `Captured`. Never `Promoted`/`Discarded`.
 - **Related Research** — never set here.
 
@@ -121,7 +124,7 @@ fields and re-attaches. Either way the `Transcript` write lands on `update-page`
   "Source URL": "https://www.youtube.com/watch?v=<id>&t=<sec>s",
   "Video ID": "<id>",
   "Timestamp": "<raw ts or empty>",
-  "Hook": "<hook or empty>",
+  "Hook": "<hook — given, else a concise descriptive one you generate>",
   "Status": "Captured"
 }
 ```
