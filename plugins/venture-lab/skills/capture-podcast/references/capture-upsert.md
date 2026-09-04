@@ -76,26 +76,45 @@ notion-query-data-sources  (mode sql)
 Pointers only — the transcript is a **file attachment**, never page-body text.
 Use the file-upload → property path (a Files property takes a `file_upload` id):
 
-1. `notion-create-file-upload { filename: "<id>.md" }` → returns `upload_url` and
-   `upload_headers`.
-2. POST the file (one multipart request; include every returned header):
-   ```bash
-   curl -s -X POST "<upload_url>" \
-     -H "<each upload_headers entry>" \
-     -F "file=@/tmp/<id>.md;type=text/markdown"
+1. `notion-create-file-upload { filename: "<id>.md" }` → returns `upload_url`,
+   `upload_form_field` (`"file"`), and `upload_headers` (an `Authorization:
+   Bearer …` — a short-lived secret).
+2. POST the file as one multipart request. The bearer token is a secret, so keep
+   it **out of argv** (a `-H "Authorization: Bearer …"` on the command line is
+   visible in the process list): write the header to a `curl` config file
+   (mode 600) and pass it with `--config`:
    ```
-   The response JSON carries the file-upload **`id`** (and `markdown_source`).
-3. Set the property with that id, in the same create/update call:
+   # upload.curl  (chmod 600)
+   url    = "<upload_url>"
+   header = "Authorization: Bearer <token>"
+   form   = "file=@/tmp/<id>.md;type=text/markdown"
+   ```
+   ```bash
+   curl -sS --config upload.curl        # method is POST because of the form field
+   ```
+   The response JSON carries `file_upload_id` and `status: "uploaded"`.
+3. Reference that id in the `Transcript` property — but note **only
+   `notion-update-page` accepts a `file_upload` object in a property**;
+   `notion-create-pages` does not (see §5). So the attach always happens on an
+   `update-page` call:
    ```json
    "Transcript": [{ "type": "file_upload", "file_upload": { "id": "<file-upload-id>" } }]
    ```
 
-If a transcript ever exceeds the single-part upload limit (20 MiB — no podcast
-transcript will), it still fits; there is no multi-part path to worry about here.
+A file upload is single-use — mint a fresh one per run (each run re-attaches).
+The single-part limit is 20 MiB; no podcast transcript approaches it (~100 KiB
+for a 2-hour episode), so there is no multi-part path to worry about.
 
 ## 5. Create / update payloads
 
-**Create** (`notion-create-pages`, parent `data_source_id: "<ds>"`):
+**`create-pages` cannot set a Files property** — its `properties` accept only
+strings/numbers/string-arrays, not a `file_upload` object. So a **new** capture is
+always two calls: create the row with the text fields, then `update-page` to
+attach the transcript. An **update** is one `update-page` that both refreshes the
+fields and re-attaches. Either way the `Transcript` write lands on `update-page`.
+
+**Create the row** (`notion-create-pages`, parent `data_source_id: "<ds>"`) — no
+`Transcript` here:
 ```json
 {
   "Name": "<Show> — <title>",
@@ -103,16 +122,20 @@ transcript will), it still fits; there is no multi-part path to worry about here
   "Video ID": "<id>",
   "Timestamp": "<raw ts or empty>",
   "Hook": "<hook or empty>",
-  "Status": "Captured",
-  "Transcript": [{ "type": "file_upload", "file_upload": { "id": "<upload-id>" } }]
+  "Status": "Captured"
 }
 ```
 `Source URL` is a url property (plain string). `Video ID` / `Timestamp` / `Hook`
 are text (strings). Do **not** put transcript text in the page `content`.
 
-**Update** (`notion-update-page`, `command: "update_properties"`, `page_id` = the
-matched row's `url`): the same `properties` map, refreshing the `Transcript`
-upload. Leave `Related Research` untouched.
+**Attach / update** (`notion-update-page`, `command: "update_properties"`,
+`page_id` = the new page id, or the matched row's `url` on a re-run): set the
+`Transcript` upload, and on a re-run refresh `Source URL` / `Timestamp` / `Hook` /
+`Status` too:
+```json
+{ "Transcript": [{ "type": "file_upload", "file_upload": { "id": "<upload-id>" } }] }
+```
+Leave `Related Research` untouched — it is never written here.
 
 ## 6. Report
 
