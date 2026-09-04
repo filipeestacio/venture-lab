@@ -11,7 +11,7 @@
       "name": "venture-lab",
       "displayName": "Venture Lab",
       "source": "./plugins/venture-lab",
-      "description": "Scaffold and run a Venture Lab Product workspace in Notion (research → PRD → phased plan), and capture podcast episodes into a Sources inbox. Skills: venture-lab-setup, configure-venture-lab.",
+      "description": "Scaffold and run a Venture Lab Product workspace in Notion (research → PRD → phased plan), and capture podcast episodes into a Sources inbox. Skills: venture-lab-setup, configure-venture-lab, capture-podcast.",
       "category": "product"
     },
     {
