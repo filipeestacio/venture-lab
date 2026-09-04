@@ -137,8 +137,38 @@ are text (strings). Do **not** put transcript text in the page `content`.
 ```
 Leave `Related Research` untouched — it is never written here.
 
-## 6. Report
+## 6. Write the descriptive summary to the page body
 
-State whether the row was **created** or **updated**, its `Name`, and its Notion
-URL. On any non-zero `podcast-transcript` exit, report the reason and that no row
-was written.
+Pointers stay in the properties; the **summary** is the one piece of synthesised
+text that goes in the page **body**, so the row is scannable without opening the
+transcript. It is a *descriptive* summary — say what the episode is and its
+substance — **not** idea-extraction: do not judge whether there's a testable
+claim, and write nothing toward Research (that is the deferred downstream skill).
+
+From the transcript you already fetched, write this into the page body:
+
+```markdown
+## Summary
+
+<3–4 sentence abstract: what this is, who's on, the shape of the substance>
+
+### Key points
+
+- <~6–8 bullets covering the actual content — the arguments, cases, takeaways>
+
+> _Auto-summary of the attached transcript (auto-captions, lossy). Provenance,
+> not a quotable source of record._
+```
+
+**Idempotent:** on first capture, `insert_content` this at the end of the
+freshly-created row. On a **re-run, replace** the existing summary — do not
+append a second `## Summary`. The body holds only this section (no child
+pages/databases), so `notion-update-page` `replace_content` with the new summary
+is the safe refresh. Never put the transcript text itself in the body — the
+transcript is the `Transcript` file attachment.
+
+## 7. Report
+
+State whether the row was **created** or **updated**, its `Name`, that the
+summary was written, and the Notion URL. On any non-zero `podcast-transcript`
+exit, report the reason and that no row was written.

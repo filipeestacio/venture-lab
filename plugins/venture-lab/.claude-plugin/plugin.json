@@ -2,7 +2,7 @@
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "venture-lab",
   "displayName": "Venture Lab",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Skills for running a Venture Lab: a Notion-based Product workspace (research → PRD → phased plan) for taking venture ideas from discovery to an engineering handoff.",
   "author": {
     "name": "Filipe Estácio",
