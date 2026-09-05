@@ -5,7 +5,7 @@
     "url": "https://github.com/filipeestacio"
   },
   "description": "Filipe's shareable Claude Code skills, starting with Venture Lab.",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "plugins": [
     {
       "name": "venture-lab",

@@ -18,10 +18,12 @@ and per-user config contract live in the sibling `configure-venture-lab` skill's
 ## 1. The transcript (Phase-1 executable)
 
 `podcast-transcript <youtube-url>` prints the transcript markdown to **stdout**.
-Capture it to a file named for the video id: `"$id".md`.
+Capture it to a file named for the video id: `"$id".md`, in a working/scratch
+directory (use the harness scratchpad dir if you have one — do not assume `/tmp`
+is writable or preferred).
 
 ```bash
-podcast-transcript "$URL" > "/tmp/<id>.md"; rc=$?
+podcast-transcript "$URL" > "$WORKDIR/<id>.md"; rc=$?
 ```
 
 **Exit codes — never write a Source row on a non-zero exit** (the coverage gap
@@ -42,8 +44,11 @@ The executable takes **no** timestamp flag — `--at` and the hook are handled h
 
 - **Video ID** — extract the 11-char id (`[A-Za-z0-9_-]{11}`) from the URL:
   `watch?v=<id>`, `youtu.be/<id>`, `/live/<id>`, `/embed/<id>`, `/shorts/<id>`.
-  This is the **dedupe key**. If you cannot extract a clean id, stop and ask —
-  never invent one.
+  Match the id from the **path/`v=` position only** — take the id token, then stop.
+  Don't scan the whole URL for any 11-char run: share links carry query params
+  (`?si=…`, `?is=…`, `?t=…`, `?list=…`) whose values can themselves contain an
+  11-char `[A-Za-z0-9_-]` run and mislead a greedy match. This is the **dedupe
+  key**. If you cannot extract a clean id, stop and ask — never invent one.
 - **Source URL** — canonical `https://www.youtube.com/watch?v=<id>`; if a
   timestamp was given, append `&t=<seconds>s` (convert `mm:ss` / `h:mm:ss` /
   `90s` / `12m` to whole seconds).
@@ -84,18 +89,23 @@ Use the file-upload → property path (a Files property takes a `file_upload` id
    Bearer …` — a short-lived secret).
 2. POST the file as one multipart request. The bearer token is a secret, so keep
    it **out of argv** (a `-H "Authorization: Bearer …"` on the command line is
-   visible in the process list): write the header to a `curl` config file
-   (mode 600) and pass it with `--config`:
-   ```
-   # upload.curl  (chmod 600)
-   url    = "<upload_url>"
-   header = "Authorization: Bearer <token>"
-   form   = "file=@/tmp/<id>.md;type=text/markdown"
-   ```
+   visible in the process list). Feed a `curl` config on **stdin** with
+   `--config -`: the token never touches argv **and never lands on disk**, so
+   there is nothing to clean up afterwards:
    ```bash
-   curl -sS --config upload.curl        # method is POST because of the form field
+   printf 'url = "%s"\nheader = "Authorization: Bearer %s"\nform = "file=@%s;type=text/markdown"\n' \
+     "$UPLOAD_URL" "$TOKEN" "$MD" \
+     | curl -sS --config -            # method is POST because of the form field
    ```
    The response JSON carries `file_upload_id` and `status: "uploaded"`.
+
+   **Do not** write the config to a temp file and then delete it. A mode-600 temp
+   file still puts the secret on disk, and the natural cleanup (`rm`) trips the
+   managed deletion guard on fleet machines — and because the guard matches the
+   *whole* command, an `rm` chained after the `curl` (`curl … && rm …`) gets the
+   POST denied along with it, so the upload silently never runs. The stdin form
+   above sidesteps all of that. If you must use a file, truncate it (`: > file`),
+   never `rm` it.
 3. Reference that id in the `Transcript` property — but note **only
    `notion-update-page` accepts a `file_upload` object in a property**;
    `notion-create-pages` does not (see §5). So the attach always happens on an
@@ -165,10 +175,13 @@ From the transcript you already fetched, write this into the page body:
 
 **Idempotent:** on first capture, `insert_content` this at the end of the
 freshly-created row. On a **re-run, replace** the existing summary — do not
-append a second `## Summary`. The body holds only this section (no child
-pages/databases), so `notion-update-page` `replace_content` with the new summary
-is the safe refresh. Never put the transcript text itself in the body — the
-transcript is the `Transcript` file attachment.
+append a second `## Summary`. `replace_content` with the new summary is the safe
+refresh **only because the body holds nothing but this section** (no child
+pages/databases, no other prose) — capture never writes anything else into the
+body, so replacing it whole loses nothing. If that ever stops being true, switch
+to targeting just the `## Summary` block; don't blind-`replace_content` a body
+that someone else has added to. Never put the transcript text itself in the
+body — the transcript is the `Transcript` file attachment.
 
 ## 7. Report
 
