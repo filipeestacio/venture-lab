@@ -10,9 +10,13 @@ Mapping: **Phase -> Milestone . Task -> Issue.** Keep plan-level tracking **in t
 Procedure:
 1. Read the Approved Plan; confirm the Definition of Ready is met. If a task is too vague to write a Definition of Done for, stop and report the gap — it is not ready to scaffold.
 2. Create one **Milestone per phase** in the target repo.
-3. Create one **Issue per task** following `sop-issue-contract`, assigned to its milestone, labelled `plan:<slug>`, with `#`-linked dependencies.
+3. Create one **Issue per task** following `sop-issue-contract`, assigned to its milestone and labelled `plan:<slug>`. Represent every task dependency in **both** forms:
+   - an explanatory `#NN` link in the issue's **Dependencies** section; and
+   - GitHub's native **blocked by / blocking** issue relationship.
+
+   A body link alone is not sufficient: native relationships are the machine-readable execution graph. For task `T` blocked by `B`, call GitHub's `POST /repos/{owner}/{repo}/issues/{T}/dependencies/blocked_by` endpoint with `B`'s numeric issue `id`. Make this idempotent by listing existing relationships first. Verify both `T /dependencies/blocked_by` and `B /dependencies/blocking`; stop and report any textual/native mismatch.
 4. Create a **tracking issue** (the critical path + a checklist of all issues) that links back to the Plan.
 5. Set the Plan `Status = In Progress`; write each task's issue URL back into the Plan (into `Links` or the task row).
-6. **Idempotent:** re-running must not duplicate issues — match by title / `plan:<slug>` and update in place.
+6. **Idempotent:** re-running must not duplicate issues or dependency edges — match issues by title / `plan:<slug>`, update in place, and reconcile the native relationship graph with the Plan's named dependencies.
 
 Each venture is scaffolded from its own account/org and its own Plan. Do not scaffold one venture's work from another's identity.
