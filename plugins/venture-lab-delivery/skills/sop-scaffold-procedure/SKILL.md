@@ -1,6 +1,6 @@
 ---
 name: sop-scaffold-procedure
-description: Scaffold an Approved Venture Lab Plan into GitHub (Phase->Milestone, Task->Issue, tracking issue; plan-level tracking stays in the Notion Plan). Load when turning an Approved Plan into engineering work.
+description: Scaffold an Approved Venture Lab Plan into GitHub (Phase->Milestone, Task->Issue, `plan:<slug>` label; no tracking issue -- plan-level tracking stays in the Notion Plan). Load when turning an Approved Plan into engineering work.
 ---
 
 Turn an **Approved** Venture Lab Plan into GitHub work. The Plan lives in the Product workspace's Plans database; its Operating Model — Product SOP is the canonical source for the lifecycle and the Definition of Ready. **Never scaffold a Plan that is not `Approved`** — only a human flips a Plan to Approved, and that flip is the handoff trigger.
@@ -15,8 +15,9 @@ Procedure:
    - GitHub's native **blocked by / blocking** issue relationship.
 
    A body link alone is not sufficient: native relationships are the machine-readable execution graph. For task `T` blocked by `B`, call GitHub's `POST /repos/{owner}/{repo}/issues/{T}/dependencies/blocked_by` endpoint with `B`'s numeric issue `id`. Make this idempotent by listing existing relationships first. Verify both `T /dependencies/blocked_by` and `B /dependencies/blocking`; stop and report any textual/native mismatch.
-4. Create a **tracking issue** (the critical path + a checklist of all issues) that links back to the Plan.
+4. **Do not create a tracking issue.** The `plan:<slug>` label is the plan's issue list, milestones are its phases, and the native relationships are its critical path. Instead, add a saved GitHub search link to the Plan's `Links`: `https://github.com/<owner>/<repo>/issues?q=label%3Aplan%3A<slug>` (one per repo if the plan spans several).
 5. Set the Plan `Status = In Progress`; write each task's issue URL back into the Plan (into `Links` or the task row).
-6. **Idempotent:** re-running must not duplicate issues or dependency edges — match issues by title / `plan:<slug>`, update in place, and reconcile the native relationship graph with the Plan's named dependencies.
+6. **Every plan issue has a label AND a milestone, for the plan's whole life.** An issue filed later for the plan (a follow-up, tech debt, a review finding) gets `plan:<slug>` and the plan's `PLAN-NN — Follow-ups` milestone; create that milestone the first time it is needed (idempotent: match by title). An open `plan:<slug>` issue with no milestone is a defect.
+7. **Idempotent:** re-running must not duplicate issues or dependency edges — match issues by title / `plan:<slug>`, update in place, and reconcile the native relationship graph with the Plan's named dependencies.
 
 Each venture is scaffolded from its own account/org and its own Plan. Do not scaffold one venture's work from another's identity.
