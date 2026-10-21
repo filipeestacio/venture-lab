@@ -1,11 +1,16 @@
 ---
 name: sop-pre-dor-review
-description: Self-review gate to run on a scaffolded issue's body BEFORE Karnak's Definition-of-Ready review sees it -- right after sop-scaffold-procedure opens it, and again before relabeling status:triage/needs-info back to status:refinement after addressing a finding. Checks the same 5-item DoR rubric Karnak judges, plus the mechanical patterns that keep failing it, so an issue clears DoR in one round instead of two. Load whenever you are about to open a scaffolded issue or relabel one back into review.
+description: Self-review gate to run on a scaffolded issue's body BEFORE Karnak's Definition-of-Ready review sees it -- right after sop-scaffold-procedure opens it, and again before resubmitting it after addressing a finding (a body save on a status:refinement issue re-triggers review; an issue outside refinement needs a relabel). Checks the same 5-item DoR rubric Karnak judges, plus the mechanical patterns that keep failing it, so an issue clears DoR in one round instead of two. Load whenever you are about to open a scaffolded issue, save a revised body on one in refinement, or relabel one back into review.
 ---
 
 Karnak (the automated DoR reviewer) is the last check on an issue's readiness, not the first — every finding it posts is a review round you did not need to spend. This is `sop-pre-pr-review`'s counterpart for issue text instead of a diff: same idea, applied before the *ticket* is picked up rather than before the *PR* is opened.
 
-**Where this fires:** after `sop-scaffold-procedure` writes an issue body and before it is opened (it will land on `status: triage` either way — the point is to make that first Karnak pass a `ready: true`); and again before you relabel an issue `status: triage`/`status: needs-info` → `status: refinement` to address a finding. That relabel is the *only* thing that re-triggers Karnak (a poller diffs the label signature, deliberately not `updated_at`, so editing the body alone does nothing) — an issue has no author trailer to route a bounced verdict back through, and there is no round cap, so relabeling before you're actually done just burns another cycle for nothing.
+**Where this fires:** after `sop-scaffold-procedure` writes an issue body and before it is opened (it will land on `status: triage` either way — the point is to make that first Karnak pass a `ready: true`); and again before you resubmit an issue after addressing a finding.
+
+**What re-triggers Karnak** (the poller, `buzz-bridge/pr-poll-events.ts`, fires when the status label enters or leaves `status: refinement`, *or the body changes while the issue sits in `status: refinement`*):
+- **Issue already in `status: refinement`** (the usual case after a `dor: changes-requested` verdict): saving the body *is* the re-trigger. Do not relabel. Draft the whole revision locally, run this checklist on it, and save it in **one** edit. Every save is a fresh review round, and there is no round cap.
+- **Issue in `status: triage` / `status: needs-info`:** fix the body first (edits there do not fire), then relabel to `status: refinement` once.
+- **Before any relabel,** confirm the target label exists in that repo (`gh label list -R <repo>`); repos carry different label sets (e.g. `litagency/litagency-infra` has no `status: needs-info`). A combined `gh issue edit --remove-label A --add-label B` removes `A` and then fails on a missing `B`, leaving the issue with no status label; after any relabel, read the labels back and restore the status label if the edit half-applied.
 
 Karnak judges exactly 5 items (`dor-issue.yml`, PLAN-47) and one `fail` sinks the whole verdict. Work each one adversarially — as Karnak will, by re-reading the text cold and grepping the repo, not as the author who already knows what they meant:
 
@@ -21,6 +26,6 @@ Karnak judges exactly 5 items (`dor-issue.yml`, PLAN-47) and one `fail` sinks th
 
 **Also, cross-check drift:** the issue was scaffolded from a Notion Plan at a point in time. Before resubmitting, confirm the issue's scope, phase, and any decision it cites (e.g. an adopt/reject call) still match the Plan's *current* state — not the state when the issue was written. A stale cross-reference is a dependencies/conflicts fail even when the issue text alone reads fine.
 
-**If you find a genuine gap,** fix the body and leave one line (in the body or a short comment) saying what changed, so a human skimming the thread can see the delta — don't pad it into prose that repeats the issue back to itself. If nothing is missing, don't edit for the sake of touching the ticket; go straight to relabeling.
+**If you find a genuine gap,** fix the body and leave one line (in the body or a short comment) saying what changed, so a human skimming the thread can see the delta — don't pad it into prose that repeats the issue back to itself. If nothing is missing, don't edit for the sake of touching the ticket: outside `status: refinement`, go straight to relabeling; inside it, a cosmetic body edit only buys another identical round, so answer the verdict in a comment and leave the decision to the human.
 
 This does not replace Karnak — it exists so Karnak's opinion is the one that catches genuine judgment calls (is this fixture design actually sound, does this threshold reflect real risk), not the same mechanical gaps every time.
