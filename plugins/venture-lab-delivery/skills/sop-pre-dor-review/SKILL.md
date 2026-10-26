@@ -5,11 +5,11 @@ description: Self-review gate to run on a scaffolded issue's body BEFORE Karnak'
 
 Karnak (the automated DoR reviewer) is the last check on an issue's readiness, not the first — every finding it posts is a review round you did not need to spend. This is `sop-pre-pr-review`'s counterpart for issue text instead of a diff: same idea, applied before the *ticket* is picked up rather than before the *PR* is opened.
 
-**Where this fires:** after `sop-scaffold-procedure` writes an issue body and before it is opened (it will land on `status: triage` either way — the point is to make that first Karnak pass a `ready: true`); and again before you resubmit an issue after addressing a finding.
+**Where this fires:** after `sop-scaffold-procedure` writes an issue body and before it is opened (every new issue enters directly at `status: refinement` — PLAN-76 D7 retired `status: triage` — so opening it starts Karnak's first pass; the point is to make that pass a `ready: true`); and again before you resubmit an issue after addressing a finding.
 
 **What re-triggers Karnak** (the poller, `buzz-bridge/pr-poll-events.ts`, fires when the status label enters or leaves `status: refinement`, *or the body changes while the issue sits in `status: refinement`*):
 - **Issue already in `status: refinement`** (the usual case after a `dor: changes-requested` verdict): saving the body *is* the re-trigger. Do not relabel. Draft the whole revision locally, run this checklist on it, and save it in **one** edit. Every save is a fresh review round, and there is no round cap.
-- **Issue in `status: triage` / `status: needs-info`:** fix the body first (edits there do not fire), then relabel to `status: refinement` once.
+- **Issue outside `status: refinement`** (e.g. `status: needs-info`, where the repo has it; `status: triage` no longer exists anywhere — never apply it): fix the body first (edits there do not fire), then relabel to `status: refinement` once.
 - **Before any relabel,** confirm the target label exists in that repo (`gh label list -R <repo>`); repos carry different label sets (e.g. `litagency/litagency-infra` has no `status: needs-info`). A combined `gh issue edit --remove-label A --add-label B` removes `A` and then fails on a missing `B`, leaving the issue with no status label; after any relabel, read the labels back and restore the status label if the edit half-applied.
 
 Karnak judges exactly 5 items (`dor-issue.yml`, PLAN-47) and one `fail` sinks the whole verdict. Work each one adversarially — as Karnak will, by re-reading the text cold and grepping the repo, not as the author who already knows what they meant:
